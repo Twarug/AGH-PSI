@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rekomendacje Filmów</title>
+    <script defer>
+      const movies = [];
+              
+      const favoriteMovies = [];
+
+      const addMovie = () => {
+        const input = document.getElementById("search-input");
+        
+        const movie = movies.find(m => m.title.toLowerCase() === input.value.toLowerCase());
+        if (!movie) {
+          alert("Movie not found in the list.");
+          return;
+        }
+
+        const movieListEl = document.getElementById("movie-list");
+
+        favoriteMovies.push(movie.title);
+        
+        movieListEl.innerText += '\n' + movie.title; 
+        input.value = "";
+      };
+
+      const recomend = async () => {
+        const result = await fetch('/api/recomend', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ movies: favoriteMovies })
+        })
+        .then(response => response.json())
+
+        alert("Rekomendacje: " + result.join(", "));
+      }
+
+
+      (async () => {
+        movies.push(...await fetch('/api/data').then(response => response.json()));
+
+        const movieDatalist = document.getElementById("movie-datalist");
+
+        console.log(movies.length);
+        console.log(movies[0]);
+
+        movies.slice(0, 1000).forEach(movie => {
+          const option = document.createElement("option");
+          option.value = movie.title;
+          movieDatalist.appendChild(option);
+        });
+
+        console.log("Finished loading movies");
+      })();
+    </script>
+  </head>
+
+  <body>
+    <h1>Rekomendacje Filmów</h1>
+    <input type="text" id="search-input" list='movie-datalist' placeholder="Wyszukaj film..." />
+    <datalist id="movie-datalist"></datalist>
+    <button type="button" onclick="addMovie()">Add</button>
+    <button type="button" onclick="recomend()">Recomend</button>
+    <div id="movie-list"></div>
+    <div id="results"></div>
+</html>
